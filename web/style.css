@@ -1,0 +1,117 @@
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+}
+
+body.login {
+	background: #f1f1f1;
+}
+
+body.content {
+	background: #ffffff;
+	margin: 0px;
+}
+
+a {
+	color: #790000;
+}
+
+a:hover {
+	color: #cf0000;
+	text-decoration: none;
+}
+
+table.form {
+	border: 1px #aaaaaa solid;
+	background: #e0e0e0;
+	padding: 4;
+	font-size: 10px;
+	color: #555555;
+}
+
+table.form input {
+	border: 1px solid #aaaaaa;
+	background-color: #f7f7f7;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+	width: 130px;
+	height: 18px;
+	margin: 0px;
+}
+
+table.form input.button {
+	width: 65px;
+	height: 18px;
+	border: 0px;
+	background-color: #e0e0e0;
+	font-weight: bold;
+}
+
+p.error {
+	color: #cf0000;
+}
+
+#header {
+	background-color: #f1f1f1;
+	text-align: center;
+	margin: 0px;
+	top-margin: 0px;
+}
+
+#header h1 {
+	padding: 15px;
+	margin: 0px;
+}
+
+#content {
+	padding: 20px;
+	background-color: #ffffff;
+	text-align: left;
+}
+
+/************************************
+ * TAB BAR
+ ***********************************/
+ul.tab, ul.tab li{border:0; margin:0; padding:0; list-style:none;}
+ul.tab{border-bottom:solid 1px #DEDEDE; height:29px; padding-left:20px;}
+ul.tab li{float:left; margin-right:2px;}
+.tab a:link, .tab a:visited{
+	background:url(img/tab-round.png) right 60px;
+	color:#666666;
+	display:block;
+	font-weight:bold;
+	height:30px;
+	line-height:30px;
+	text-decoration:none;
+}
+.tab a span{
+	background:url(img/tab-round.png) left 60px;
+	display:block;
+	height:30px;
+	margin-right:14px;
+	padding-left:14px;
+}
+.tab a:hover{
+	background:url(img/tab-round.png) right 30px;
+	display:block;
+}
+.tab a:hover span{
+	background:url(img/tab-round.png) left 30px;
+	display:block;
+}
+
+ul.tab .active a:link, ul.tab .active a:visited, ul.tab .active a:visited, ul.tab .active a:hover{
+	background:url(img/tab-round.png) right 0 no-repeat;
+} 
+ul.tab .active a span, ul.tab .active a:hover span{
+	background:url(img/tab-round.png) left 0 no-repeat;
+}
+
+#logout, #logout a:link, #logout a:visited, #logout span {
+	background: none;
+	float: right;
+}
+
+#logout a:hover {
+	color: #cf0000;
+}
