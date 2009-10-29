@@ -1,20 +1,32 @@
 #include <cstdio>
 #include <cstring>
+#include <curl/curl.h>
+#include <curl/types.h>
+#include <curl/easy.h>
+#include <string>
 
 using namespace std;
 
+#define CURL_STATICLIB
+#define DEBUG
 #define IN getc( stdin )
 
-char line[2048];
-char part[256];
 bool y[15] = {0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0};
 bool spec[128];
+char line[2048];
+char part[256];
+const char *url = "http://acmicpc-live-archive.uva.es/nuevoportal/status.php";
+const char *out = "status";
 int ic;
 
-int main(void){
-	for(int i = 0; i < 128; ++i) spec[i] = 0;
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+	size_t written;
+	written = fwrite(ptr, size, nmemb, stream);
+	return written;
+}
+/* {{{ Live Archive Parser */
+void parseLA(){
 	for(int k = 0; k < 28; ++k) fgets(line, 2048, stdin);
-	spec['\t'] = spec['\n'] = 1;
 	register char c;
 	for(int i = 0; i < 25; ++i){
 		ic = 0;
@@ -44,14 +56,34 @@ int main(void){
 					else if(part[0] == 'M') strcpy(part, "ML");
 					else if(part[0] == 'O') strcpy(part, "OL");
 				}
-				printf("%s\t", part);
+				if(ic) putc('\t', stdout);
+				printf("%s", part);
 				ic++;
 			} else while(IN != '<');
 			ungetc('<', stdin);
 		}
 		putc(10, stdout);
-
 	}
+}
+/* }}} */
+int main(void){
+	for(int i = 0; i < 128; ++i) spec[i] = 0;
+	spec['\t'] = spec['\n'] = 1;
+	CURL *curl;
+	FILE *fp;
+	CURLcode res;
+	curl = curl_easy_init();
+	if (curl) {
+		fp = fopen(out,"wb");
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+		res = curl_easy_perform(curl);
+		curl_easy_cleanup(curl);
+		fclose(fp);
+	}
+	freopen(out, "r", stdin);
+	parseLA();
 	return 0;
 }
 
