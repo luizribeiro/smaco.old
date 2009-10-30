@@ -11,13 +11,14 @@ using namespace std;
 #define DEBUG
 #define IN getc( stdin )
 
-bool y[15] = {0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0};
+bool y[15] = {0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0};
 bool spec[128];
 char line[2048];
 char part[256];
 const char *url = "http://acmicpc-live-archive.uva.es/nuevoportal/status.php";
 const char *out = "status";
 int ic;
+FILE *stt;
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	size_t written;
@@ -56,13 +57,13 @@ void parseLA(){
 					else if(part[0] == 'M') strcpy(part, "ML");
 					else if(part[0] == 'O') strcpy(part, "OL");
 				}
-				if(ic) putc('\t', stdout);
-				printf("%s", part);
+				if(ic) fputc('\t', stt);
+				fprintf(stt, "%s", part);
 				ic++;
 			} else while(IN != '<');
 			ungetc('<', stdin);
 		}
-		putc(10, stdout);
+		fputc(10, stt);
 	}
 }
 /* }}} */
@@ -83,7 +84,9 @@ int main(void){
 		fclose(fp);
 	}
 	freopen(out, "r", stdin);
+	stt = fopen("parsed.txt","wb");
 	parseLA();
+	fclose(stt);
 	return 0;
 }
 
