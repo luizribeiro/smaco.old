@@ -18,7 +18,38 @@ include("tabs.php");
 ?>
 	</div>
 	<div id="content">
-		<p>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vestibulum et pharetra velit. Nam commodo laoreet lectus, in hendrerit nisl iaculis sed. In posuere, metus et aliquam imperdiet, quam odio sodales risus, a tempus dui nulla in leo. Nulla iaculis lacus risus. Fusce varius porttitor lectus, sed ornare eros aliquam at. Aliquam sed mauris eget dui facilisis tempor. Aenean sodales ante magna, et lacinia metus. Aliquam odio ante, faucibus nec porta a, imperdiet nec felis. Maecenas posuere, diam at mattis congue, urna purus hendrerit ante, ac sodales augue lacus quis mi. Fusce pharetra sem sit amet ante mattis et congue ipsum varius. Nullam nec porta eros.</p>
+<?php
+if($_SESSION["smacoaccess"] <= 10) {
+?>
+		<p align="center"><a href="newcontest.php">Novo Contest</a></p>
+<?php
+}
+?>
+		<table class="default">
+			<thead>
+				<tr>
+					<td>Contest</td>
+					<td>Início</td>
+					<td>Fim</td>
+				</tr>
+			</thead>
+			<tbody>
+<?php
+$r = mysql_query("SELECT contestid, nome, inicio, fim FROM contests ORDER BY inicio DESC");
+if(mysql_num_rows($r) == 0) {
+	echo "				<tr><td colspan=\"2\" style=\"text-align: center;\">Nenhum contest encontrado.</td></tr>\n";
+} else {
+	while($row = mysql_fetch_assoc($r)) {
+		echo "				<tr>\n";
+		echo "					<td><a href=\"scoreboard.php?c=".$row["contestid"]."\">".$row["nome"]."</a></td>\n";
+		echo "					<td>".$row["inicio"]."</td>\n";
+		echo "					<td>".$row["fim"]."</td>\n";
+		echo "				</tr>\n";
+	}
+}
+?>
+			</tbody>
+		</table>
 	</div>
 </body>
 </html>

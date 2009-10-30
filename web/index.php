@@ -11,11 +11,12 @@ if(session_is_registered("smacoid")) header("Location: home.php");
 if(isset($_POST["submit"])) {
 	$login = strip_tags($_POST["login"]);
 	$pass = md5(strip_tags($_POST["pass"]));
-	$r = mysql_query(sprintf("SELECT login FROM users WHERE login='%s' AND senha='%s'", mysql_real_escape_string($login), mysql_real_escape_string($pass)));
-	if(mysql_num_rows($r) != 1) $_GET["msg"] = "fail";
+	$r = mysql_query(sprintf("SELECT uid, login, access FROM users WHERE login='%s' AND senha='%s'", mysql_real_escape_string($login), mysql_real_escape_string($pass)));
+	if(mysql_num_rows($r) !== 1) $_GET["msg"] = "fail";
 	else {
 		$row = mysql_fetch_assoc($r);
-		$_SESSION["smacoid"] = $row["login"];
+		$_SESSION["smacoid"] = $row["uid"];
+		$_SESSION["smacoaccess"] = $row["access"];
 		header("Location: home.php");
 	}
 }

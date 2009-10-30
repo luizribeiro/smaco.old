@@ -1,6 +1,7 @@
 body {
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 11px;
+	color: #555555;
 }
 
 body.login {
@@ -14,6 +15,7 @@ body.content {
 
 a {
 	color: #790000;
+	text-decoration: none;
 }
 
 a:hover {
@@ -24,18 +26,30 @@ a:hover {
 table.form {
 	border: 1px #aaaaaa solid;
 	background: #e0e0e0;
-	padding: 4;
-	font-size: 10px;
+	padding: 4px;
+	font-size: 11px;
 	color: #555555;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 table.form input {
 	border: 1px solid #aaaaaa;
 	background-color: #f7f7f7;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
-	font-size: 10px;
+	font-size: 11px;
 	width: 130px;
-	height: 18px;
+	height: 20px;
+	margin: 0px;
+}
+
+table.form select {
+	border: 1px solid #aaaaaa;
+	background-color: #f7f7f7;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	width: 130px;
+	height: 20px;
 	margin: 0px;
 }
 
@@ -43,8 +57,47 @@ table.form input.button {
 	width: 65px;
 	height: 18px;
 	border: 0px;
+	font-size: 11px;
 	background-color: #e0e0e0;
 	font-weight: bold;
+}
+
+table.default {
+	border: 1px #aaaaaa solid;
+	border-collapse: collapse;
+	background: #e0e0e0;
+	font-size: 11px;
+	border-spacing: 0px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+table.default thead {
+	background: #d0d0d0;
+	font-weight: bold;
+	text-align: center;
+}
+
+table.default thead a {
+	display: block;
+	width: 100%;
+	height: 100%;
+	text-decoration: none;
+}
+
+table.default thead img {
+	border: 0px;
+	vertical-align: middle;
+}
+
+table.default tbody tr:nth-child(odd) {
+	background: #efefef;
+}
+
+table.default td {
+	padding: 4px;
+	border-left: 1px dashed #aaaaaa;
+	border-right: 1px dashed #aaaaaa;
 }
 
 p.error {
@@ -64,9 +117,14 @@ p.error {
 }
 
 #content {
-	padding: 20px;
+	margin: 20px;
 	background-color: #ffffff;
 	text-align: left;
+}
+
+#content h1 {
+	font-size: 17px;
+	font-weight: bold;
 }
 
 /************************************

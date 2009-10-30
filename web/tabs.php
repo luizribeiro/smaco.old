@@ -1,16 +1,18 @@
 <?php
 $tfiles = array(
 	array("home.php"),
-	array("contests.php"),
+	array("contests.php", "newcontest.php", "scoreboard.php"),
 	array("ranking.php"),
-	array("options.php"),
-	array("help.php"));
+//	array("options.php"),
+//	array("help.php"),
+);
 $tnames = array(
 	"Home",
 	"Contests",
 	"Ranking",
-	"Opções",
-	"Ajuda");
+//	"Opções",
+//	"Ajuda",
+);
 
 $self = $_SERVER["PHP_SELF"];
 $parts = explode("/", $self);
