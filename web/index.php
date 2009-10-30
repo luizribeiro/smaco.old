@@ -35,9 +35,11 @@ if(isset($_POST["submit"])) {
 	-->
 	</script>
 </head>
-<body class="login">
-	<div align="center">
-		<h1>sudo make a contest</h1>
+<body>
+<?php
+include("header.php");
+?>
+	<div id="content">
 <?php
 if(isset($_GET["msg"])) {
 	if($_GET["msg"] == "fail")
@@ -45,7 +47,7 @@ if(isset($_GET["msg"])) {
 	else if($_GET["msg"] == "require")
 		echo "<p class=\"error\">Para acessar esta área você precisa efetuar login.</p>";
 	else if($_GET["msg"] == "logout")
-		echo "<p>Logout efetuado com sucesso.</p>";
+		echo "<p class=\"notify\">Logout efetuado com sucesso.</p>";
 }
 ?>
 
@@ -65,5 +67,8 @@ if(isset($_GET["msg"])) {
 			</table>
 		</form>
 	</div>
+<?php
+include("footer.php");
+?>
 </body>
 </html>

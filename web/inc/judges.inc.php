@@ -7,4 +7,15 @@ function judgeURL($jid, $pid) {
 		return "#";
 	}
 }
+
+function judgeName($jid) {
+	switch($jid) {
+	case 0:
+		return "Live Archive";
+	case 1:
+		return "UVa";
+	default:
+		return "Unknown";
+	}
+}
 ?>

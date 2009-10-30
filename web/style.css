@@ -1,15 +1,8 @@
 body {
+	background-color: #f1f1f1;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 11px;
 	color: #555555;
-}
-
-body.login {
-	background: #f1f1f1;
-}
-
-body.content {
-	background: #ffffff;
 	margin: 0px;
 }
 
@@ -24,6 +17,7 @@ a:hover {
 }
 
 table.form {
+	margin: 10px;
 	border: 1px #aaaaaa solid;
 	background: #e0e0e0;
 	padding: 4px;
@@ -63,6 +57,7 @@ table.form input.button {
 }
 
 table.default {
+	margin: 10px;
 	border: 1px #aaaaaa solid;
 	border-collapse: collapse;
 	background: #e0e0e0;
@@ -100,12 +95,26 @@ table.default td {
 	border-right: 1px dashed #aaaaaa;
 }
 
+td.accepted {
+	background: #c1ffc6;
+	text-align: center;
+}
+
+td.wrong {
+	background: #ffc1c1;
+	text-align: center;
+}
+
 p.error {
 	color: #cf0000;
+	text-align: center;
+}
+
+p.notify {
+	text-align: center;
 }
 
 #header {
-	background-color: #f1f1f1;
 	text-align: center;
 	margin: 0px;
 	top-margin: 0px;
@@ -117,7 +126,7 @@ p.error {
 }
 
 #content {
-	margin: 20px;
+	padding: 20px 20px 20px 20px;
 	background-color: #ffffff;
 	text-align: left;
 }
@@ -125,6 +134,19 @@ p.error {
 #content h1 {
 	font-size: 17px;
 	font-weight: bold;
+	text-align: center;
+}
+
+#footer {
+	background-color: #f1f1f1;
+	border-top: solid 1px #dedede;
+	padding-top: 10px;
+	font-size: 10px;
+	text-align: center;
+}
+
+#footer p {
+	margin: 0px;
 }
 
 /************************************

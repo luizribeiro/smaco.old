@@ -25,13 +25,10 @@ if(isset($_POST["submit"])) {
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
-<body class="content">
-	<div id="header">
-		<h1>sudo make a contest</h1>
+<body>
 <?php
-include("tabs.php");
+include("header.php");
 ?>
-	</div>
 	<div id="content">
 		<h1>Novo Contest</h1>
 <?php
@@ -87,5 +84,8 @@ for($i = 0; $i < MAX_PROBLEMS; $i++) {
 }
 ?>
 	</div>
+<?php
+include("footer.php");
+?>
 </body>
 </html>

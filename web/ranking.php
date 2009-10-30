@@ -10,13 +10,10 @@ if(!session_is_registered("smacoid")) header("Location: index.php?msg=require");
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
-<body class="content">
-	<div id="header">
-		<h1>sudo make a contest</h1>
+<body>
 <?php
-include("tabs.php");
+include("header.php");
 ?>
-	</div>
 	<div id="content">
 		<table class="default">
 			<thead>
@@ -28,12 +25,12 @@ include("tabs.php");
 			</thead>
 			<tbody>
 <?php
-$r = mysql_query("SELECT login, nome, score FROM users WHERE login != 'admin' ORDER BY score DESC");
+$r = mysql_query("SELECT uid, nome, score FROM users WHERE login != 'admin' ORDER BY score DESC");
 $i = 1;
 while($row = mysql_fetch_assoc($r)) {
 	echo "				<tr>\n";
 	echo "					<td>".$i.".</td>\n";
-	echo "					<td>".$row["nome"]."</td>\n";
+	echo "					<td><a href=\"userinfo.php?uid=".$row["uid"]."\">".$row["nome"]."</a></td>\n";
 	echo "					<td>".$row["score"]."</td>\n";
 	echo "				</tr>\n";
 	$i++;
@@ -42,5 +39,8 @@ while($row = mysql_fetch_assoc($r)) {
 			</tbody>
 		</table>
 	</div>
+<?php
+include("footer.php");
+?>
 </body>
 </html>

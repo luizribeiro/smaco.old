@@ -10,13 +10,10 @@ if(!session_is_registered("smacoid")) header("Location: index.php?msg=require");
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
-<body class="content">
-	<div id="header">
-		<h1>sudo make a contest</h1>
+<body>
 <?php
-include("tabs.php");
+include("header.php");
 ?>
-	</div>
 	<div id="content">
 		<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi porta lacinia dictum. Etiam commodo egestas ipsum, sit amet consequat lorem pharetra a. Sed ut leo ipsum, in luctus tellus. Ut velit velit, eleifend at egestas ac, pretium at sem. Mauris facilisis, tortor id volutpat pharetra, odio mi interdum arcu, vitae imperdiet magna lorem vitae odio. Curabitur vel porta massa. Pellentesque lorem magna, suscipit eget hendrerit sed, molestie et tellus. Donec rutrum pulvinar bibendum. Ut nunc justo, cursus quis viverra ac, ornare id elit. Vestibulum tincidunt placerat pellentesque. Fusce sem dui, venenatis et egestas in, commodo id diam. Pellentesque blandit gravida libero ut ultrices. Ut eleifend viverra augue, vel vestibulum sapien varius eu.</p>
 
@@ -28,5 +25,8 @@ include("tabs.php");
 
 		<p>Curabitur neque metus, malesuada sit amet placerat ut, adipiscing ut felis. Sed consequat, tellus at scelerisque convallis, lacus erat semper magna, quis faucibus ipsum ante nec urna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ante erat, laoreet at congue et, hendrerit molestie felis. Fusce mauris risus, tincidunt nec fringilla a, ultricies a lacus. Vestibulum posuere justo in dui auctor luctus. Quisque nec pulvinar mauris. Fusce fermentum mi et tortor mattis rhoncus. Praesent dui quam, pellentesque egestas mollis vitae, aliquam ullamcorper nibh. Praesent sed metus metus, eu malesuada urna. Vestibulum ac eros enim, vel malesuada lectus.</p>
 	</div>
+<?php
+include("footer.php");
+?>
 </body>
 </html>
