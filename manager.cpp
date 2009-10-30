@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -15,30 +16,41 @@ const char *host = "home.luizribeiro.org";
 const char *user = "smaco";
 const char *pwd = "senha";
 const char *database = "smaco";
-MYSQL mysql;
+MYSQL mysql, *conn;
 
-MYSQL* connect (){
+bool connect(){
 	mysql_init(&mysql);
-	return mysql_real_connect(&mysql, host, user, pwd, database, 0, 0, 0);
+	conn = mysql_real_connect(&mysql, host, user, pwd, database, 0, 0, 0);
+	return conn != NULL;
 }
 
-MYSQL_RES* query(MYSQL * conn, const char *q){
-	int q_st;
-	q_st = mysql_query(conn, q);
+MYSQL_RES* query(const char *q){
+	int q_st = mysql_query(conn, q);
 	MYSQL_RES * r;
-	if(q_st) return r;
+	if(q_st) return NULL;
 	r = mysql_store_result(conn);
 	return r;
 }
 
-MYSQL_RES* get_ids(MYSQL * conn){
-	return query(conn, "SELECT id FROM userids WHERE EXISTS(\
+string itos(int k){
+	string s;
+	do {
+		s += (char)(k % 10 + '0');
+		k /= 10;
+	} while(k);
+	reverse(s.begin(), s.end());
+	return s;
+}
+MYSQL_RES* get_ids(int jid){
+	string q = "SELECT id FROM userids WHERE EXISTS(\
 		SELECT * FROM users WHERE EXISTS(\
 		SELECT * FROM participates WHERE EXISTS(\
 		SELECT * FROM running_contests\
 		WHERE running_contests.contestid = participates.contestid\
 		AND participates.uid = users.uid\
-		AND users.uid = userids.uid)))");
+		AND users.uid = userids.uid\
+		AND userids.judgeid = " + itos(jid) + ")))";
+	return query(q.c_str());
 }
 /* }}} */
 
@@ -144,15 +156,24 @@ void init_parser(){
 
 /* UPDATE {{{ */
 
+const char *judge_name[2] = {"Live Archive", "UVa"};
 void update(int judge){
+	printf("[%s]\n", judge_name[judge]);
+	MYSQL_RES * ids = get_ids(judge);
+	if(ids == NULL) printf("FAIL.\n");
+	MYSQL_ROW id = mysql_fetch_row(ids);
+	if(id != NULL) while(id != NULL){
+		printf("\t%s\n",id[0]);
+		id = mysql_fetch_row(ids);
+	} else printf("No participants.\n");
+	printf("--------------------\n");
 
 }
 
 /* }}} */
 
 int main(void){
-	MYSQL * conn = connect();
-	if(conn == NULL){
+	if(!connect()){
 		printf("FATAL: Couldn't connect\n");
 		return 0;
 	}
@@ -161,7 +182,7 @@ int main(void){
 		/* 5 segundos sem fazer nada */
 		sleep(5);
 		/* Verifica se algum contest esta rodando */
-		MYSQL_RES * res = NULL;// = query(conn, "SELECT judgeid FROM running_contests");
+		MYSQL_RES * res = query("SELECT judgeid, nome FROM running_contests");
 		if(res == NULL){
 			printf("No contests running\n");
 			continue;
@@ -169,6 +190,7 @@ int main(void){
 		/* Tem pelo menos um contest rodando */
 		MYSQL_ROW r;
 		while((r = mysql_fetch_row(res)) != NULL){
+			printf("Contest (%s)\n", r[1]);
 			/* Pega o judgeid */
 			int j_id = atoi(r[0]);
 			/* Roda o parser */
