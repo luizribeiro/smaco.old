@@ -28,7 +28,10 @@ include("header.php");
 $r = mysql_query("SELECT uid, nome, score FROM users WHERE login != 'admin' ORDER BY score DESC");
 $i = 1;
 while($row = mysql_fetch_assoc($r)) {
-	echo "				<tr>\n";
+	if($row["uid"] == $_SESSION["smacoid"])
+		echo "				<tr class=\"highlight\">\n";
+	else
+		echo "				<tr>\n";
 	echo "					<td>".$i.".</td>\n";
 	echo "					<td><a href=\"userinfo.php?uid=".$row["uid"]."\">".$row["nome"]."</a></td>\n";
 	echo "					<td>".$row["score"]."</td>\n";

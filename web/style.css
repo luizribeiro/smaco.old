@@ -57,7 +57,7 @@ table.form input.button {
 }
 
 table.default {
-	margin: 10px;
+	margin: 15px;
 	border: 1px #aaaaaa solid;
 	border-collapse: collapse;
 	background: #e0e0e0;
@@ -95,13 +95,38 @@ table.default td {
 	border-right: 1px dashed #aaaaaa;
 }
 
+tr.coming td {
+	font-style: oblique;
+}
+
+tr.running td {
+	font-style: oblique;
+	background: #ccffd0;
+}
+
+tr.highlight td {
+	background: #ccffd0;
+}
+
 td.accepted {
-	background: #c1ffc6;
+	background: #ccffd0;
 	text-align: center;
 }
 
 td.wrong {
-	background: #ffc1c1;
+	background: #ffd0d0;
+	text-align: center;
+}
+
+p.timeleft {
+	margin: 0px;
+	text-align: center;
+}
+
+p.frozen {
+	margin: 0px;
+	font-weight: bold;
+	color: #5498b9;
 	text-align: center;
 }
 
@@ -153,9 +178,9 @@ p.notify {
  * TAB BAR
  ***********************************/
 ul.tab, ul.tab li{border:0; margin:0; padding:0; list-style:none;}
-ul.tab{border-bottom:solid 1px #DEDEDE; height:29px; padding-left:20px;}
-ul.tab li{float:left; margin-right:2px;}
-.tab a:link, .tab a:visited{
+ul.tab {border-bottom:solid 1px #DEDEDE; height:29px; padding-left:20px;}
+ul.tab li {float:left; margin-right:2px;}
+.tab a:link, .tab a:visited {
 	background:url(img/tab-round.png) right 60px;
 	color:#666666;
 	display:block;
@@ -171,18 +196,19 @@ ul.tab li{float:left; margin-right:2px;}
 	margin-right:14px;
 	padding-left:14px;
 }
-.tab a:hover{
+.tab a:hover {
 	background:url(img/tab-round.png) right 30px;
 	display:block;
 }
-.tab a:hover span{
+.tab a:hover span {
 	background:url(img/tab-round.png) left 30px;
 	display:block;
 }
 
-ul.tab .active a:link, ul.tab .active a:visited, ul.tab .active a:visited, ul.tab .active a:hover{
+ul.tab .active a:link, ul.tab .active a:visited, ul.tab .active a:visited, ul.tab .active a:hover {
 	background:url(img/tab-round.png) right 0 no-repeat;
 } 
+
 ul.tab .active a span, ul.tab .active a:hover span{
 	background:url(img/tab-round.png) left 0 no-repeat;
 }

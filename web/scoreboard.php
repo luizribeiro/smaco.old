@@ -10,13 +10,15 @@ $r = mysql_query("SELECT nome, UNIX_TIMESTAMP(inicio) AS inicio, UNIX_TIMESTAMP(
 if(mysql_num_rows($r) == 0) header("Location: contests.php");
 $contest = mysql_fetch_assoc($r);
 
+if($contest["inicio"] >= time()) header("Location: contests.php");
+
 $r = mysql_query("SELECT pid, problemid, name FROM problems WHERE contestid = ".$_GET["c"]." ORDER BY name ASC");
 for($num_problems = 0; $row = mysql_fetch_assoc($r); $num_problems++)
 	$problems[$num_problems] = $row;
 
 // TODO: transformar join em função e verificar se user tem id associado no judge do contest
 // join
-if($_SESSION["smacoaccess"] > 0)
+if($_SESSION["smacoaccess"] > 0 && $contest["fim"] > time())
 	mysql_query("INSERT INTO `participates` (`uid`, `contestid`) VALUES (".$_SESSION["smacoid"].", ".$_GET["c"].");");
 
 // baixa as runs e faz tudo
@@ -54,18 +56,19 @@ function usercmp($a, $b) {
 	if($a["penalty"] > $b["penalty"]) return 1;
 	return $a["nome"] > $b["nome"];
 }
-usort($users, "usercmp");
+if($num_users > 0)
+	usort($users, "usercmp");
 ?>
 <html>
 <head>
 	<title>sudo make a contest</title>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <?php
-// TODO if(not frozen and not ended) {
+if($contest["fim"] > time()) {
 ?>
 	<meta http-equiv="refresh" content="30; url=" />
 <?php
-// }
+}
 ?>
 	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
@@ -75,6 +78,18 @@ include("header.php");
 ?>
 	<div id="content">
 		<h1><?php echo $contest["nome"]; ?></h1>
+<?php
+if($contest["fim"] < time())
+	echo "		<p class=\"timeleft\">Fim do Contest.</p>";
+else {
+	$left = $contest["fim"] - time();
+	$min = floor($left/60);
+	$sec = $left % 60;
+	if($min > 0) echo "		<p class=\"timeleft\">".$min." minutos e ".$sec." segundos restantes.</p>";
+	else echo "		<p class=\"timeleft\">".$sec." segundos restantes.</p>";
+	//echo "		<p class=\"frozen\">Placar Congelado!</p>"; // TODO: frozen
+}
+?>
 		<table class="default">
 			<thead>
 				<tr>

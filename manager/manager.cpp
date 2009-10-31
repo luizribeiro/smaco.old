@@ -16,7 +16,7 @@ using namespace std;
 
 #define NR(x) mysql_fetch_row(x)
 
-const char *host = "home.luizribeiro.org";
+const char *host = "localhost";
 const char *user = "smaco";
 const char *pwd = "senha";
 const char *database = "smaco";
@@ -207,8 +207,8 @@ void updateLA(int cid){
 		string cmd = string("insert into runs (runid, judgeid, uid, ") +
 					 string("pid, date, answer, runtime, language) VALUES (")
 					 + itos(sid) + ", " + jid + ", " +  itos(un) + ", " + 
-					 itos(pn) + ", ADDTIME('" + string(day) + " " + string(hour) +
-					 "', '-02:00:00'), '" + string(ans) + "', " + string(runtime) 
+					 itos(pn) + ", '" + string(day) + " " + string(hour) +
+					 "', '" + string(ans) + "', " + string(runtime) 
 					 + ", 'C++');";
 		printf("Command (%s)\n", cmd.c_str());
 		query(cmd.c_str());
