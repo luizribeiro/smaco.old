@@ -16,7 +16,7 @@ using namespace std;
 
 #define NR(x) mysql_fetch_row(x)
 
-const char *host = "localhost";
+const char *host = "home.luizribeiro.org";
 const char *user = "smaco";
 const char *pwd = "senha";
 const char *database = "smaco";
@@ -57,6 +57,31 @@ MYSQL_RES* get_ids(int jid){
 		AND userids.judgeid = " + itos(jid) + ")))";
 	return query(q.c_str());
 }
+
+MYSQL_RES* get_probs(string cid, string jid){
+	string p = string("SELECT problemid FROM problems, running_contests WHERE ") +
+				string("problems.contestid = running_contests.contestid AND ") +
+				string("problems.contestid = ") + cid + 
+				string(" AND running_contests.judgeid = ") + jid;
+	return query(p.c_str());
+}
+
+int get_uid(string uid, string judgeid){
+	string c = "select uid from userids where id = " + uid +
+				" AND judgeid = " + judgeid;
+	MYSQL_RES * unum_q = query(c.c_str());
+	MYSQL_ROW unum_r = NR(unum_q);
+	return atoi(unum_r[0]);
+}
+
+int get_pid(string pid, string cid){
+	string c = "select pid from problems where problemid = " + pid + 
+				" AND contestid = " + cid;
+	MYSQL_RES * pnum_q = query(c.c_str());
+	MYSQL_ROW pnum_r = NR(pnum_q);
+	return atoi(pnum_r[0]);
+}
+
 /* }}} */
 
 /* PARSER {{{ */
@@ -70,12 +95,25 @@ char part[256];
 FILE *stt;
 const char *url[2] = {
 	"http://acmicpc-live-archive.uva.es/nuevoportal/status.php",
-	"http://uva.onlinejudge.org/"
+	"http://uva.onlinejudge.org/index.php?option=onlinejudge&Itemid=19"
 };
+
+void adapt(){
+	if(part[0] == 'A') strcpy(part,"AC");
+	else if(part[0] == 'W') strcpy(part, "WA");
+	else if(part[0] == 'T') strcpy(part, "TL");
+	else if(part[0] == 'R'){
+		if(part[11] != 'F') strcpy(part, "RE");
+		else strcpy(part,"RF");
+	} else if(part[0] == 'C') strcpy(part, "CE");
+	else if(part[0] == 'P') strcpy(part, "PE");
+	else if(part[0] == 'M') strcpy(part, "ML");
+	else if(part[0] == 'O') strcpy(part, "OL");
+}
 
 /* {{{ Live Archive Parser */
 void parseLA(){
-	bool y[15] = {0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0};
+	bool y[15] = {0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
 	int ic;
 	for(int k = 0; k < 28; ++k) fgets(line, 2048, stdin);
 	register char c;
@@ -93,20 +131,9 @@ void parseLA(){
 					}
 					if(spec[c]) continue;
 					*p++ = c;
-					*p = 0;
 				}
-				if(ic == 2){
-					if(part[0] == 'A') strcpy(part,"AC");
-					else if(part[0] == 'W') strcpy(part, "WA");
-					else if(part[0] == 'T') strcpy(part, "TL");
-					else if(part[0] == 'R'){
-						if(part[11] != 'F') strcpy(part, "RE");
-						else strcpy(part,"RF");
-					} else if(part[0] == 'C') strcpy(part, "CE");
-					else if(part[0] == 'P') strcpy(part, "PE");
-					else if(part[0] == 'M') strcpy(part, "ML");
-					else if(part[0] == 'O') strcpy(part, "OL");
-				}
+				*p = 0;
+				if(ic == 2) adapt();
 				if(ic) fputc('\t', stt);
 				fprintf(stt, "%s", part);
 				ic++;
@@ -121,7 +148,51 @@ void parseLA(){
 
 /* UVa Parser {{{ */
 void parseUVA(){
-
+	bool y[25];
+	for(int i = 0; i < 25; ++i) y[i] = 0;
+	y[1] = y[4] = y[15] = y[17] = y[19] = y[22] = 1;
+	for(int i = 0; i < 230; ++i) fgets(line, 2048, stdin);
+	int ic, k;
+	register char c;
+	for(int i = 0; i < 50; ++i){
+		ic = 0;
+		for(int cnt = 0; cnt < 25; ++cnt){
+			char *p = part;
+			while(IN != '<');
+			if(cnt != 12) {
+				for(c = IN, k = 1; ; c = IN){
+					k += (c == '<');
+					k -= (c == '>');
+					if(!k) break;
+				}
+			} else {
+				for(c = IN; !isdigit(c); c = IN);
+				while(isdigit(c)) *p++ = c, c = IN;
+				*p = 0;
+				fprintf(stt, "\t%5s", part);
+			}
+			if(y[cnt]) {
+				for(c = IN; c != EOF && c != '<'; c = IN){
+					if(c == '&') {
+						while(IN != ';');
+						c = IN;
+					}
+					if(spec[c]) continue;
+					*p++ = c;
+				}
+				*p = 0;
+				if(ic == 2) adapt();
+				if(ic == 3)
+					if(!strcmp(part, "ANSI C")) strcpy(part,"C");
+				if(ic) fputc('\t', stt);
+				fprintf(stt, "%5s", part);
+				ic++;
+			} else while(IN != '<');
+			ungetc('<', stdin);
+		}
+		fputc(10, stt);
+	}
+	while(fgets(line, 2048, stdin));
 }
 /* }}} */
 
@@ -170,18 +241,12 @@ set < int > s, u;
 /* Live Archive update RUNS {{{ */
 
 void updateLA(int cid){
-	/* Seleciona os problemas desse contest, nesse judge */
-	string jid = "0", p;
-	p = string("SELECT problemid FROM problems, running_contests WHERE ") +
-		string("problems.contestid = running_contests.contestid AND ") +
-		string("problems.contestid = ") + itos(cid) + 
-		string(" AND running_contests.judgeid = ") + jid;
-	//printf("Query (%s)\n",p.c_str());
 	int pid, sid, uid;
-	char day[16], hour[16], ans[8], runtime[16];
-	MYSQL_RES * probs = query(p.c_str());
+	char ans[8], day[16], hour[16], lang[8], runtime[16];
+	/* Seleciona os problemas desse contest, nesse judge */
+	MYSQL_RES * probs = get_probs(itos(cid), string("0"));
 	if(probs == NULL) {
-		printf("No problems\n");
+		printf("FAIL: Selecting problems\n");
 		return;
 	}
 	s.clear();
@@ -189,31 +254,22 @@ void updateLA(int cid){
 		printf("--> Problem %d\n", atoi(r[0]));
 		s.insert(atoi(r[0]));
 	}
-	freopen("parsed.txt", "r", stdin);
-	while(scanf("%d %s %s %s %s %d %d", &sid, day, hour, ans,
-			runtime, &uid, &pid) != EOF){
+	while(scanf("%d %s %s %s %s %d %s %d", &sid, day, hour, ans,
+			runtime, &uid, lang, &pid) != EOF){
 		if(s.find(pid) == s.end() || u.find(uid) == u.end()) continue;
-		/* Insere o problema */
 		printf("Inserting submission %d by %d, problem %d\n", sid, uid, pid);
-		string c1 = "select pid from problems where problemid = " + itos(pid) + 
-					" AND contestid = " + itos(cid);
-		MYSQL_RES * pnum_q = query(c1.c_str());
-		MYSQL_ROW pnum_r = NR(pnum_q);
-		int pn = atoi(pnum_r[0]);
-		string c2 = "select uid from userids where id = " + itos(uid);
-		MYSQL_RES * unum_q = query(c2.c_str());
-		MYSQL_ROW unum_r = NR(unum_q);
-		int un = atoi(unum_r[0]);
+		int pn = get_pid(itos(pid), itos(cid));
+		int un = get_uid(itos(uid), string("0"));
+		/* Insere a submissao no BD */
 		string cmd = string("insert into runs (runid, judgeid, uid, ") +
 					 string("pid, date, answer, runtime, language) VALUES (")
-					 + itos(sid) + ", " + jid + ", " +  itos(un) + ", " + 
+					 + itos(sid) + ", 0, " +  itos(un) + ", " + 
 					 itos(pn) + ", '" + string(day) + " " + string(hour) +
 					 "', '" + string(ans) + "', " + string(runtime) 
-					 + ", 'C++');";
+					 + ", '" + string(lang) + "');";
 		printf("Command (%s)\n", cmd.c_str());
 		query(cmd.c_str());
 	}
-
 }
 
 /* }}} */
@@ -221,7 +277,35 @@ void updateLA(int cid){
 /* UVa update RUNS {{{ */
 
 void updateUVa(int cid){
-
+	int pid, sid, uid;
+	char ans[8], day[16], hour[16], lang[8], runtime[16];
+	/* Seleciona os problemas desse contest, nesse judge */
+	MYSQL_RES * probs = get_probs(itos(cid), string("1"));
+	if(probs == NULL) {
+		printf("FAIL: Selecting problems\n");
+		return;
+	}
+	s.clear();
+	for(MYSQL_ROW r = NR(probs); r != NULL; r = NR(probs)){
+		printf("--> Problem %d\n", atoi(r[0]));
+		s.insert(atoi(r[0]));
+	}
+	while(scanf("%d %d %d %s %s %s %s %s", &sid, &pid, &uid, ans,
+			lang, runtime, day, hour) != EOF){
+		if(s.find(pid) == s.end() || u.find(uid) == u.end()) continue;
+		printf("Inserting submission %d by %d, problem %d\n", sid, uid, pid);
+		int pn = get_pid(itos(pid), itos(cid));
+		int un = get_uid(itos(uid), string("1"));
+		/* Insere a submissao no BD */
+		string cmd = string("insert into runs (runid, judgeid, uid, ") +
+					 string("pid, date, answer, runtime, language) VALUES (")
+					 + itos(sid) + ", 1, " +  itos(un) + ", " + 
+					 itos(pn) + ", '" + string(day) + " " + string(hour) +
+					 "', '" + string(ans) + "', " + string(runtime) 
+					 + ", '" + string(lang) + "');";
+		printf("Command (%s)\n", cmd.c_str());
+		query(cmd.c_str());
+	}
 }
 
 /* }}} */
@@ -242,6 +326,7 @@ void update(int judge, int cid){
 	} else printf("No participants.\n");
 	mysql_free_result(ids);
 	printf("--------------------\n");
+	freopen("parsed.txt", "r", stdin);
 	switch(judge){
 		case 0: updateLA(cid); break;
 		case 1: updateUVa(cid); break;
