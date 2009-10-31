@@ -99,16 +99,17 @@ const char *url[2] = {
 };
 
 void adapt(){
-	if(part[0] == 'A') strcpy(part,"AC");
-	else if(part[0] == 'W') strcpy(part, "WA");
-	else if(part[0] == 'T') strcpy(part, "TL");
-	else if(part[0] == 'R'){
-		if(part[11] != 'F') strcpy(part, "RE");
-		else strcpy(part,"RF");
-	} else if(part[0] == 'C') strcpy(part, "CE");
-	else if(part[0] == 'P') strcpy(part, "PE");
-	else if(part[0] == 'M') strcpy(part, "ML");
-	else if(part[0] == 'O') strcpy(part, "OL");
+	for(char *p = part; *p; ++p) *p = tolower(*p);
+	if(!strcmp(part,"accepted"))				 	strcpy(part, "AC");
+	else if(!strcmp(part, "wrong answer"))		 	strcpy(part, "WA");
+	else if(!strcmp(part, "time limit exceeded")) 	strcpy(part, "TL");
+	else if(!strcmp(part, "runtime error"))			strcpy(part, "RE");
+	else if(!strcmp(part, "presentation error"))	strcpy(part, "PE");
+	else if(!strcmp(part, "compilation error"))	 	strcpy(part, "CE");
+	else if(!strcmp(part, "restricted function")) 	strcpy(part, "RF");
+	else if(!strcmp(part, "memory limit exceeded"))	strcpy(part, "ML");
+	else if(!strcmp(part, "output limit exceeded"))	strcpy(part, "OL");
+	else strcpy(part, "IG");
 }
 
 /* {{{ Live Archive Parser */
@@ -256,6 +257,7 @@ void updateLA(int cid){
 	}
 	while(scanf("%d %s %s %s %s %d %s %d", &sid, day, hour, ans,
 			runtime, &uid, lang, &pid) != EOF){
+		if(!strcmp(ans,"IG")) continue;
 		if(s.find(pid) == s.end() || u.find(uid) == u.end()) continue;
 		printf("Inserting submission %d by %d, problem %d\n", sid, uid, pid);
 		int pn = get_pid(itos(pid), itos(cid));
@@ -292,6 +294,7 @@ void updateUVa(int cid){
 	}
 	while(scanf("%d %d %d %s %s %s %s %s", &sid, &pid, &uid, ans,
 			lang, runtime, day, hour) != EOF){
+		if(!strcmp(ans,"IG")) continue;
 		if(s.find(pid) == s.end() || u.find(uid) == u.end()) continue;
 		printf("Inserting submission %d by %d, problem %d\n", sid, uid, pid);
 		int pn = get_pid(itos(pid), itos(cid));
