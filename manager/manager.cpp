@@ -5,6 +5,7 @@
 #include <curl/curl.h>
 #include <curl/types.h>
 #include <curl/easy.h>
+#include <map>
 #include <mysql.h>
 #include <set>
 #include <string>
@@ -46,15 +47,16 @@ string itos(int k){
 	return s;
 }
 
-MYSQL_RES* get_ids(int jid){
-	string q = "SELECT id FROM userids WHERE EXISTS(\
-		SELECT uid FROM users WHERE EXISTS(\
-		SELECT uid FROM participates WHERE EXISTS(\
-		SELECT contestid FROM running_contests\
-		WHERE running_contests.contestid = participates.contestid\
-		AND participates.uid = users.uid\
-		AND users.uid = userids.uid\
-		AND userids.judgeid = " + itos(jid) + ")))";
+MYSQL_RES* get_ids(int jid, int cid){
+	string q = string("SELECT id FROM userids WHERE EXISTS(") +
+				string("SELECT uid FROM users WHERE EXISTS(") +
+				string("SELECT uid FROM participates WHERE EXISTS(") +
+				string("SELECT contestid FROM running_contests AS rc") +
+				string(" WHERE rc.contestid = participates.contestid") +
+				string(" AND participates.uid = users.uid AND") +
+				string(" users.uid = userids.uid AND userids.judgeid = ") +
+				itos(jid) + string(" AND rc.contestid = ") + itos(cid) + 
+				string(")))");
 	return query(q.c_str());
 }
 
@@ -64,6 +66,14 @@ MYSQL_RES* get_probs(string cid, string jid){
 				string("problems.contestid = ") + cid + 
 				string(" AND running_contests.judgeid = ") + jid;
 	return query(p.c_str());
+}
+
+int get_judgeid(int cid){
+	string c = "select judgeid from running_contests where contestid = " + 
+				itos(cid);
+	MYSQL_RES * jnum_q = query(c.c_str());
+	MYSQL_ROW jnum_r = NR(jnum_q);
+	return atoi(jnum_r[0]);
 }
 
 int get_uid(string uid, string judgeid){
@@ -84,7 +94,7 @@ int get_pid(string pid, string cid){
 
 /* }}} */
 
-/* PARSER {{{ */
+/* PARSER {{{1 */
 
 #define CURL_STATICLIB
 #define IN getc( stdin )
@@ -105,6 +115,7 @@ void adapt(){
 	else if(!strcmp(part, "time limit exceeded")) 	strcpy(part, "TL");
 	else if(!strcmp(part, "runtime error"))			strcpy(part, "RE");
 	else if(!strcmp(part, "presentation error"))	strcpy(part, "PE");
+	else if(!strcmp(part, "compile error"))			strcpy(part, "CE");
 	else if(!strcmp(part, "compilation error"))	 	strcpy(part, "CE");
 	else if(!strcmp(part, "restricted function")) 	strcpy(part, "RF");
 	else if(!strcmp(part, "memory limit exceeded"))	strcpy(part, "ML");
@@ -112,7 +123,7 @@ void adapt(){
 	else strcpy(part, "IG");
 }
 
-/* {{{ Live Archive Parser */
+/* Live Archive Parser {{{2 */
 void parseLA(){
 	bool y[15] = {0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
 	int ic;
@@ -122,6 +133,8 @@ void parseLA(){
 		ic = 0;
 		for(int cnt = 0; cnt < 15; ++cnt){
 			while(IN != '<');
+			if(!cnt && (c = IN) == '/') goto out;
+			else ungetc(c, stdin);
 			while(IN != '>');
 			char *p = part;
 			if(y[cnt]) {
@@ -143,11 +156,12 @@ void parseLA(){
 		}
 		fputc(10, stt);
 	}
+out:
 	while(fgets(line, 2048, stdin));
 }
-/* }}} */
+/* }}}2 */
 
-/* UVa Parser {{{ */
+/* UVa Parser {{{2 */
 void parseUVA(){
 	bool y[25];
 	for(int i = 0; i < 25; ++i) y[i] = 0;
@@ -195,7 +209,7 @@ void parseUVA(){
 	}
 	while(fgets(line, 2048, stdin));
 }
-/* }}} */
+/* }}}2 */
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	size_t written;
@@ -219,12 +233,12 @@ void parse(int judge){
 	}
 	freopen("status", "r", stdin);
 	stt = fopen("parsed.txt","wb");
-	printf("Parsing\n");
+	printf("Parsing...");
 	switch(judge){
 		case 0: parseLA(); break;
 		case 1: parseUVA(); break;
 	}
-	printf("Parsed\n");
+	printf("DONE\n");
 	fclose(stt);
 }
 void init_parser(){
@@ -234,101 +248,104 @@ void init_parser(){
 
 /* }}} */
 
-/* UPDATE {{{ */
+/* UPDATE {{{1 */
 
 const char *judge_name[2] = {"Live Archive", "UVa"};
+int pid, sid, uid;
+char ans[8], day[16], hour[16], lang[8], runtime[16];
 set < int > s, u;
+string jla = string("0"), juva = string("1");
 
-/* Live Archive update RUNS {{{ */
+void insert_ids(int jid, int cid){
+	u.clear();
+	MYSQL_RES * ids = get_ids(jid, cid);
+	if(ids == NULL) {
+		printf("FAIL: Getting contestants id's.\n");
+		return;
+	}
+	MYSQL_ROW id = NR(ids);
+	if(id != NULL){
+		printf("Contestants: [");
+		while(id != NULL){
+			printf(" %d",atoi(id[0]));
+			u.insert(atoi(id[0]));
+			id = NR(ids);
+			if(id != NULL) putc(',', stdout);
+			else putc(32, stdout);
+		}
+		printf("]\n");
+	} else printf("No contestants.\n");
+	mysql_free_result(ids);
+}
 
-void updateLA(int cid){
-	int pid, sid, uid;
-	char ans[8], day[16], hour[16], lang[8], runtime[16];
-	/* Seleciona os problemas desse contest, nesse judge */
+void insert_probs(int jid, int cid){
+	s.clear();
 	MYSQL_RES * probs = get_probs(itos(cid), string("0"));
 	if(probs == NULL) {
 		printf("FAIL: Selecting problems\n");
 		return;
 	}
-	s.clear();
-	for(MYSQL_ROW r = NR(probs); r != NULL; r = NR(probs)){
-		printf("--> Problem %d\n", atoi(r[0]));
-		s.insert(atoi(r[0]));
-	}
+	MYSQL_ROW r = NR(probs);
+	if(r != NULL){
+		printf("Problems [");
+		while(r != NULL){
+			printf(" %d", atoi(r[0]));
+			s.insert(atoi(r[0]));
+			r = NR(probs);
+			if(r != NULL) putc(',', stdout);
+			else putc(32, stdout);
+		}
+		printf("]\n");
+	} else printf("No problems.\n");
+	mysql_free_result(probs);
+}
+
+void insert_run(string jid, string cid){
+	if(!strcmp(ans,"IG") || s.find(pid) == s.end() || u.find(uid) == u.end())
+		return;
+	printf("Inserting run %d by %d, prob %d (%s)\n", sid, uid, pid, ans);
+	int pn = get_pid(itos(pid), cid);
+	int un = get_uid(itos(uid), jid);
+	/* Insere a submissao no BD */
+	string cmd = string("insert into runs (runid, judgeid, uid, ") +
+				 string("pid, date, answer, runtime, language) VALUES (")
+				 + itos(sid) + ", " + jid  + ", " +  itos(un) + ", " + 
+				 itos(pn) + ", '" + string(day) + " " + string(hour) +
+				 "', '" + string(ans) + "', " + string(runtime) 
+				 + ", '" + string(lang) + "');";
+#ifdef DEBUG_INSERT_RUN
+	printf("Command (%s)\n", cmd.c_str());
+#endif
+	query(cmd.c_str());
+}
+/* Live Archive update RUNS {{{2 */
+
+void updateLA(int cid){
+	string _cid = itos(cid);
 	while(scanf("%d %s %s %s %s %d %s %d", &sid, day, hour, ans,
 			runtime, &uid, lang, &pid) != EOF){
-		if(!strcmp(ans,"IG")) continue;
-		if(s.find(pid) == s.end() || u.find(uid) == u.end()) continue;
-		printf("Inserting submission %d by %d, problem %d\n", sid, uid, pid);
-		int pn = get_pid(itos(pid), itos(cid));
-		int un = get_uid(itos(uid), string("0"));
-		/* Insere a submissao no BD */
-		string cmd = string("insert into runs (runid, judgeid, uid, ") +
-					 string("pid, date, answer, runtime, language) VALUES (")
-					 + itos(sid) + ", 0, " +  itos(un) + ", " + 
-					 itos(pn) + ", '" + string(day) + " " + string(hour) +
-					 "', '" + string(ans) + "', " + string(runtime) 
-					 + ", '" + string(lang) + "');";
-		printf("Command (%s)\n", cmd.c_str());
-		query(cmd.c_str());
+		insert_run(jla, _cid);
 	}
 }
 
-/* }}} */
+/* }}}2 */
 
-/* UVa update RUNS {{{ */
+/* UVa update RUNS {{{2 */
 
 void updateUVa(int cid){
-	int pid, sid, uid;
-	char ans[8], day[16], hour[16], lang[8], runtime[16];
-	/* Seleciona os problemas desse contest, nesse judge */
-	MYSQL_RES * probs = get_probs(itos(cid), string("1"));
-	if(probs == NULL) {
-		printf("FAIL: Selecting problems\n");
-		return;
-	}
-	s.clear();
-	for(MYSQL_ROW r = NR(probs); r != NULL; r = NR(probs)){
-		printf("--> Problem %d\n", atoi(r[0]));
-		s.insert(atoi(r[0]));
-	}
+	string _cid = itos(cid);
 	while(scanf("%d %d %d %s %s %s %s %s", &sid, &pid, &uid, ans,
 			lang, runtime, day, hour) != EOF){
-		if(!strcmp(ans,"IG")) continue;
-		if(s.find(pid) == s.end() || u.find(uid) == u.end()) continue;
-		printf("Inserting submission %d by %d, problem %d\n", sid, uid, pid);
-		int pn = get_pid(itos(pid), itos(cid));
-		int un = get_uid(itos(uid), string("1"));
-		/* Insere a submissao no BD */
-		string cmd = string("insert into runs (runid, judgeid, uid, ") +
-					 string("pid, date, answer, runtime, language) VALUES (")
-					 + itos(sid) + ", 1, " +  itos(un) + ", " + 
-					 itos(pn) + ", '" + string(day) + " " + string(hour) +
-					 "', '" + string(ans) + "', " + string(runtime) 
-					 + ", '" + string(lang) + "');";
-		printf("Command (%s)\n", cmd.c_str());
-		query(cmd.c_str());
+		insert_run(juva, _cid);
 	}
 }
 
-/* }}} */
+/* }}}2 */
 
 void update(int judge, int cid){
-	u.clear();
 	printf("[%s]\n", judge_name[judge]);
-	/* Pega os ids que estao participando de algum contest
-	** nesse judge.
-	*/
-	MYSQL_RES * ids = get_ids(judge);
-	if(ids == NULL) printf("FAIL.\n");
-	MYSQL_ROW id = NR(ids);
-	if(id != NULL) while(id != NULL){
-		printf("--> User %d\n",atoi(id[0]));
-		u.insert(atoi(id[0]));
-		id = NR(ids);
-	} else printf("No participants.\n");
-	mysql_free_result(ids);
-	printf("--------------------\n");
+	insert_ids(judge, cid);
+	insert_probs(judge, cid);
 	freopen("parsed.txt", "r", stdin);
 	switch(judge){
 		case 0: updateLA(cid); break;
@@ -337,7 +354,22 @@ void update(int judge, int cid){
 
 }
 
+/* }}}1 */
+
+/* SCORE {{{ */
+
+void score(int jid, int cid){
+	/* Mapeia um id para 0 <= x <= N -> numero de participantes */
+	map < int , int > m;
+	int uc = 0;
+	string q;
+}
+
 /* }}} */
+
+/* main {{{ */
+
+set < int > was, is;
 
 int main(void){
 	if(!connect()){
@@ -355,26 +387,34 @@ int main(void){
 			continue;
 		}
 		MYSQL_ROW r = NR(res);
-		if(r == NULL){
-			printf("No running contests.\n");
-			continue;
-		}
+		if(r == NULL) printf("No running contests.\n");
 		/* Tem pelo menos um contest rodando */
+		is.clear();
 		while(r != NULL){
-			printf("Contest (%s)\n", r[1]);
+			printf("\n~~~~~~~~~~ \"%s\" ~~~~~~~~~~\n\n", r[1]);
 			/* Pega o judgeid e o contestid */
 			int j_id = atoi(r[0]), c_id = atoi(r[2]);
+			is.insert(c_id);
 			/* Roda o parser */
 			parse(j_id);
-			/* Interpreta a saida do parser
-			   e atualiza runs
-			 */
+			/* Interpreta a saida do parser e atualiza runs */
 			update(j_id, c_id);
 			r = NR(res);
 		}
+		for(set < int > :: iterator it = was.begin(); it != was.end(); it++)
+			if(is.find(*it) == is.end()){
+				printf("Contest %d just ended\n", *it);
+				int judge = get_judgeid(*it); 
+				score(judge, *it);
+			}
+		was.clear();
+		for(set < int > :: iterator it = is.begin(); it != is.end(); it++)
+			was.insert(*it);
 		/* Libera a memoria utilizada pela query */
 		mysql_free_result(res);
 	}
 	return 0;
 }
+
+/* }}} */
 
