@@ -141,6 +141,13 @@ p.frozen {
 	text-align: center;
 }
 
+p.super {
+	margin: 0px;
+	font-weight: bold;
+	color: #cf0000;
+	text-align: center;
+}
+
 p.error {
 	color: #cf0000;
 	text-align: center;

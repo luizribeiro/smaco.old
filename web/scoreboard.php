@@ -18,7 +18,6 @@ $r = mysql_query("SELECT pid, problemid, name FROM problems WHERE contestid = ".
 for($num_problems = 0; $row = mysql_fetch_assoc($r); $num_problems++)
 	$problems[$num_problems] = $row;
 
-// TODO: transformar join em função e verificar se user tem id associado no judge do contest
 // join
 if($_SESSION["smacoaccess"] > 0 && $contest["fim"] > time())
 	mysql_query("INSERT INTO `participates` (`uid`, `contestid`) VALUES (".$_SESSION["smacoid"].", ".$_GET["c"].");");
@@ -87,6 +86,8 @@ include("header.php");
 if($contest["fim"] < time()) {
 	echo "		<p class=\"timeleft\">Fim do Contest.</p>\n";
 	echo "		<p class=\"timeleft\"><a href=\"runlist.php?c=".$_GET["c"]."\">Runlist</a></p>\n";
+} else if($contest["fim"] == 2000000000) {
+	echo "		<p class=\"super\">Super Contest!</p>\n";
 } else {
 	$left = $contest["fim"] - time();
 	$min = floor($left/60);
@@ -94,7 +95,7 @@ if($contest["fim"] < time()) {
 	if($min > 0) echo "		<p class=\"timeleft\">".$min." minutos e ".$sec." segundos restantes.</p>\n";
 	else echo "		<p class=\"timeleft\">".$sec." segundos restantes.</p>\n";
 	if($contest["freeze"] <= time())
-		echo "		<p class=\"frozen\">Placar Congelado!</p>\n"; // TODO: frozen
+		echo "		<p class=\"frozen\">Placar Congelado!</p>\n";
 }
 ?>
 		<table class="default">

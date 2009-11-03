@@ -9,7 +9,10 @@ if($_SESSION["smacoaccess"] > 10) header("Location: home.php");
 
 if(isset($_POST["submit"])) {
 	$inicio = $_POST["dia"]." ".$_POST["horario"];
-	$r = mysql_query("INSERT INTO `contests` (`nome`, `judgeid`, `inicio`, `fim`, `freeze`) VALUES ('".$_POST["nome"]."', ".$_POST["judgeid"].", '".$inicio."', ADDTIME('".$inicio."', '".date("H:i:s", 60*$_POST["duracao"])."'), '".$_POST["freeze"]."');");
+	if($_POST["super"] == "yes")
+		$r = mysql_query("INSERT INTO `contests` (`nome`, `judgeid`, `inicio`, `fim`, `freeze`) VALUES ('".$_POST["nome"]."', ".$_POST["judgeid"].", '".$inicio."', FROM_UNIXTIME(2000000000), '".$_POST["freeze"]."');");
+	else
+		$r = mysql_query("INSERT INTO `contests` (`nome`, `judgeid`, `inicio`, `fim`, `freeze`) VALUES ('".$_POST["nome"]."', ".$_POST["judgeid"].", '".$inicio."', ADDTIME('".$inicio."', '".date("H:i:s", 60*$_POST["duracao"])."'), '".$_POST["freeze"]."');");
 	if($r) {
 		$contestid = mysql_insert_id();
 		for($i = 0; !empty($_POST["id".$i]) && $i < MAX_PROBLEMS; $i++)
@@ -62,6 +65,10 @@ if(isset($msg)) {
 				<tr>
 					<td>Horário:</td>
 					<td><input type="text" name="horario" value="14:00:00" /></td>
+				</tr>
+				<tr>
+					<td>Super Contest:</td>
+					<td><input type="checkbox" name="super" value="yes" /></td>
 				</tr>
 				<tr>
 					<td>Duração (mins):</td>
