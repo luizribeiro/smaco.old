@@ -1,9 +1,13 @@
 body {
+	text-align: center;
 	background-color: #f1f1f1;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 11px;
 	color: #555555;
+	width: 780px;
 	margin: 0px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 a {
@@ -14,6 +18,10 @@ a {
 a:hover {
 	color: #cf0000;
 	text-decoration: none;
+}
+
+img {
+	border: 0px;
 }
 
 table.form {
@@ -80,9 +88,13 @@ table.default thead a {
 	text-decoration: none;
 }
 
-table.default thead img {
-	border: 0px;
+img.balloon {
 	vertical-align: middle;
+}
+
+img.star {
+	vertical-align: -1px;
+	margin-right: 3px;
 }
 
 table.default tbody tr:nth-child(odd) {
@@ -100,7 +112,6 @@ tr.coming td {
 }
 
 tr.running td {
-	font-style: oblique;
 	background: #ccffd0;
 }
 
@@ -151,6 +162,8 @@ p.notify {
 }
 
 #content {
+	border-left: solid 1px #dedede;
+	border-right: solid 1px #dedede;
 	padding: 20px 20px 20px 20px;
 	background-color: #ffffff;
 	text-align: left;
@@ -163,9 +176,9 @@ p.notify {
 }
 
 #footer {
-	background-color: #f1f1f1;
 	border-top: solid 1px #dedede;
 	padding-top: 10px;
+	padding-bottom: 10px;
 	font-size: 10px;
 	text-align: center;
 }

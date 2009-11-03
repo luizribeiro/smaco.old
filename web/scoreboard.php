@@ -6,9 +6,11 @@ session_start();
 if(!session_is_registered("smacoid")) header("Location: index.php?msg=require");
 if(!isset($_GET["c"])) header("Location: contests.php");
 
-$r = mysql_query("SELECT nome, UNIX_TIMESTAMP(inicio) AS inicio, UNIX_TIMESTAMP(fim) AS fim, judgeid FROM contests WHERE contestid = ".$_GET["c"]);
+$r = mysql_query("SELECT nome, UNIX_TIMESTAMP(inicio) AS inicio, UNIX_TIMESTAMP(fim) AS fim, judgeid, freeze FROM contests WHERE contestid = ".$_GET["c"]);
 if(mysql_num_rows($r) == 0) header("Location: contests.php");
 $contest = mysql_fetch_assoc($r);
+
+$contest["freeze"] = $contest["fim"] - $contest["freeze"]*60;
 
 if($contest["inicio"] >= time()) header("Location: contests.php");
 
@@ -27,7 +29,10 @@ for($num_users = 0; $row = mysql_fetch_assoc($r); $num_users++) {
 	$users[$num_users] = $row;
 	$users[$num_users]["solved"] = 0;
 	$users[$num_users]["penalty"] = 0;
-	$t = mysql_query("SELECT pid, answer, UNIX_TIMESTAMP(date) AS date FROM runs WHERE uid=".$users[$num_users]["uid"]." AND date > FROM_UNIXTIME(".$contest["inicio"].") AND date < FROM_UNIXTIME(".$contest["fim"].") ORDER BY date ASC");
+	if($contest["fim"] < time())
+		$t = mysql_query("SELECT pid, answer, UNIX_TIMESTAMP(date) AS date FROM runs WHERE uid=".$users[$num_users]["uid"]." AND date > FROM_UNIXTIME(".$contest["inicio"].") AND date < FROM_UNIXTIME(".$contest["fim"].") AND pid IN (SELECT pid FROM problems WHERE contestid=".$_GET["c"].") ORDER BY date ASC");
+	else
+		$t = mysql_query("SELECT pid, answer, UNIX_TIMESTAMP(date) AS date FROM runs WHERE uid=".$users[$num_users]["uid"]." AND date > FROM_UNIXTIME(".$contest["inicio"].") AND date <= FROM_UNIXTIME(".$contest["freeze"].") AND pid IN (SELECT pid FROM problems WHERE contestid=".$_GET["c"].") ORDER BY date ASC");
 	// inicia tudo
 	for($i = 0; $i < $num_problems; $i++) {
 		$users[$num_users][$problems[$i]["pid"]]["ac"] = false;
@@ -79,15 +84,17 @@ include("header.php");
 	<div id="content">
 		<h1><?php echo $contest["nome"]; ?></h1>
 <?php
-if($contest["fim"] < time())
-	echo "		<p class=\"timeleft\">Fim do Contest.</p>";
-else {
+if($contest["fim"] < time()) {
+	echo "		<p class=\"timeleft\">Fim do Contest.</p>\n";
+	echo "		<p class=\"timeleft\"><a href=\"runlist.php?c=".$_GET["c"]."\">Runlist</a></p>\n";
+} else {
 	$left = $contest["fim"] - time();
 	$min = floor($left/60);
 	$sec = $left % 60;
-	if($min > 0) echo "		<p class=\"timeleft\">".$min." minutos e ".$sec." segundos restantes.</p>";
-	else echo "		<p class=\"timeleft\">".$sec." segundos restantes.</p>";
-	//echo "		<p class=\"frozen\">Placar Congelado!</p>"; // TODO: frozen
+	if($min > 0) echo "		<p class=\"timeleft\">".$min." minutos e ".$sec." segundos restantes.</p>\n";
+	else echo "		<p class=\"timeleft\">".$sec." segundos restantes.</p>\n";
+	if($contest["freeze"] <= time())
+		echo "		<p class=\"frozen\">Placar Congelado!</p>\n"; // TODO: frozen
 }
 ?>
 		<table class="default">
@@ -97,7 +104,7 @@ else {
 					<td>Competidor</td>
 <?php
 for($i = 0; $i < $num_problems; $i++) {
-	echo "					<td><a href=\"".judgeURL($contest["judgeid"], $problems[$i]["problemid"])."\"><img src=\"img/balloon_".$i.".png\" />".$problems[$i]["name"]."</a></td>\n";
+	echo "					<td><a href=\"".judgeURL($contest["judgeid"], $problems[$i]["problemid"])."\"><img class=\"balloon\" src=\"img/balloon_".$i.".png\" />".$problems[$i]["name"]."</a></td>\n";
 }
 ?>
 					<td>ACs</td>
@@ -116,7 +123,7 @@ if($num_users == 0) {
 	for($i = 0; $i < $num_users; $i++) {
 		echo "				<tr>\n";
 		echo "					<td>".($i+1).".</td>\n";
-		echo "					<td><a href=\"userinfo.php?u=".$users[$i]["uid"]."\">".$users[$i]["nome"]."</a></td>\n";
+		echo "					<td><a href=\"profile.php?u=".$users[$i]["uid"]."\">".$users[$i]["nome"]."</a></td>\n";
 		for($j = 0; $j < $num_problems; $j++) {
 			$t = $users[$i][$problems[$j]["pid"]];
 			if($t["runs"] == 0)

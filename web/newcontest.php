@@ -8,7 +8,8 @@ if(!session_is_registered("smacoid")) header("Location: index.php?msg=require");
 if($_SESSION["smacoaccess"] > 10) header("Location: home.php");
 
 if(isset($_POST["submit"])) {
-	$r = mysql_query("INSERT INTO `contests` (`nome`, `judgeid`, `inicio`, `fim`) VALUES ('".$_POST["nome"]."', ".$_POST["judgeid"].", '".$_POST["inicio"]."', '".$_POST["fim"]."');");
+	$inicio = $_POST["dia"]." ".$_POST["horario"];
+	$r = mysql_query("INSERT INTO `contests` (`nome`, `judgeid`, `inicio`, `fim`, `freeze`) VALUES ('".$_POST["nome"]."', ".$_POST["judgeid"].", '".$inicio."', ADDTIME('".$inicio."', '".date("H:i:s", 60*$_POST["duracao"])."'), '".$_POST["freeze"]."');");
 	if($r) {
 		$contestid = mysql_insert_id();
 		for($i = 0; !empty($_POST["id".$i]) && $i < MAX_PROBLEMS; $i++)
@@ -55,12 +56,20 @@ if(isset($msg)) {
 					</td>
 				</tr>
 				<tr>
-					<td>Início:</td>
-					<td><input type="text" name="inicio" value="2009-10-30 02:00:00" /></td>
+					<td>Dia:</td>
+					<td><input type="text" name="dia" value="2009-10-31" /></td>
 				</tr>
 				<tr>
-					<td>Fim:</td>
-					<td><input type="text" name="fim" value="2009-10-30 07:00:00" /></td>
+					<td>Horário:</td>
+					<td><input type="text" name="horario" value="14:00:00" /></td>
+				</tr>
+				<tr>
+					<td>Duração (mins):</td>
+					<td><input type="text" name="duracao" value="300" /></td>
+				</tr>
+				<tr>
+					<td>Freeze (mins):</td>
+					<td><input type="text" name="freeze" value="60" /></td>
 				</tr>
 				<tr><td colspan="2">&nbsp;</td></tr>
 				<tr>

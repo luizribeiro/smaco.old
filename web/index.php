@@ -54,15 +54,15 @@ if(isset($_GET["msg"])) {
 		<form name="login" method="post" action="index.php">
 			<table class="form">
 				<tr>
-					<td><b>Login:</b></td>
+					<td>Login:</td>
 					<td><input type="text" name="login" id="login" /></td>
 				</tr>
 				<tr>
-					<td><b>Senha:</b></td>
+					<td>Senha:</td>
 					<td><input type="password" name="pass" id="pass" /></td>
 				</tr>
 				<tr>
-					<td align="right" colspan="2"><input type="submit" name="submit" class="button" value="Logar" /></td>
+					<td align="right" colspan="2"><input type="submit" name="submit" class="button" value="Ok" /></td>
 				</tr>
 			</table>
 		</form>

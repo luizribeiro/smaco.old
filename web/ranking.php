@@ -33,7 +33,7 @@ while($row = mysql_fetch_assoc($r)) {
 	else
 		echo "				<tr>\n";
 	echo "					<td>".$i.".</td>\n";
-	echo "					<td><a href=\"userinfo.php?uid=".$row["uid"]."\">".$row["nome"]."</a></td>\n";
+	echo "					<td><a href=\"profile.php?u=".$row["uid"]."\">".$row["nome"]."</a></td>\n";
 	echo "					<td>".$row["score"]."</td>\n";
 	echo "				</tr>\n";
 	$i++;
