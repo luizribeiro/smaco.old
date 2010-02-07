@@ -281,7 +281,7 @@ void insert_ids(int jid, int cid){
 
 void insert_probs(int jid, int cid){
 	s.clear();
-	MYSQL_RES * probs = get_probs(itos(cid), string("0"));
+	MYSQL_RES * probs = get_probs(itos(cid), itos(jid));
 	if(probs == NULL) {
 		printf("FAIL: Selecting problems\n");
 		return;
