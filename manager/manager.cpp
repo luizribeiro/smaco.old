@@ -17,17 +17,11 @@ using namespace std;
 
 #define NR(x) mysql_fetch_row(x)
 
-const char *host = "home.luizribeiro.org";
+const char *host = "localhost";
 const char *user = "smaco";
 const char *pwd = "senha";
 const char *database = "smaco";
 MYSQL mysql, *conn;
-
-bool connect(){
-	mysql_init(&mysql);
-	conn = mysql_real_connect(&mysql, host, user, pwd, database, 0, 0, 0);
-	return conn != NULL;
-}
 
 MYSQL_RES* query(const char *q){
 	int q_st = mysql_query(conn, q);
@@ -35,6 +29,13 @@ MYSQL_RES* query(const char *q){
 	if(q_st) return NULL;
 	r = mysql_store_result(conn);
 	return r;
+}
+
+bool connect(){
+	mysql_init(&mysql);
+	conn = mysql_real_connect(&mysql, host, user, pwd, database, 0, 0, 0);
+	if(conn != NULL) query("SET SESSION time_zone = '+0:00';");
+	return conn != NULL;
 }
 
 string itos(int k){
