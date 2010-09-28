@@ -17,7 +17,7 @@ using namespace std;
 
 #define NR(x) mysql_fetch_row(x)
 
-const char *host = "localhost";
+const char *host = "home.luizribeiro.org";
 const char *user = "smaco";
 const char *pwd = "senha";
 const char *database = "smaco";
@@ -167,7 +167,7 @@ void parseUVA(){
 	bool y[25];
 	for(int i = 0; i < 25; ++i) y[i] = 0;
 	y[1] = y[4] = y[15] = y[17] = y[19] = y[22] = 1;
-	for(int i = 0; i < 230; ++i) fgets(line, 2048, stdin);
+	for(int i = 0; i < 231; ++i) fgets(line, 2048, stdin);
 	int ic, k;
 	register char c;
 	for(int i = 0; i < 50; ++i){
